@@ -165,8 +165,27 @@ ring_elem RingMap::eval_term(const Ring *sourceK,  // source coeff ring
       result_monom = M->make_one();
       temp_monom = M->make_one();
     }
-
-  if (!R->is_commutative_ring() || R->cast_to_SchurRing())
+  if (R->is_weyl_algebra())
+    {
+      for (index_varpower i = vp; i.valid(); ++i)
+        {
+          int v = first_var + i.var();
+          int e = i.exponent();
+          ring_elem g;
+          if (e >= 0)
+            g = _elem[v].bigelem;
+          else
+            g = R->invert(_elem[v].bigelem);
+          for (int j = 0; j < e; j++)
+            {
+              assert(v < nvars);
+              ring_elem tmp = R->mult(result, g);
+              R->remove(result);
+              result = tmp;
+            }
+        }
+    }
+  else if (!R->is_commutative_ring() || R->cast_to_SchurRing())
     {
       // This is the only non-commutative case so far
       for (index_varpower i = vp; i.valid(); ++i)
